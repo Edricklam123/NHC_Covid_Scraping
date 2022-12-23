@@ -13,13 +13,14 @@ from src.main.event_handler import Prompt_type
 from src.main.session_creator import Session_Creator
 
 # Class
-class Nhc_Daily_Disclosure_Scraper:
+class NHC_Daily_Disclosure_Scraper:
     """
 
     """
     def __init__(self):
         self.cd_path = os.path.join('src', 'drivers', 'chromedriver.exe') # chromedriver path
         self.news_url_csv_path = os.path.join('.', 'data', 'df_news_links.csv')
+        self.news_content_csv_path = os.path.join('.', 'data', 'df_news_content.csv')
 
         #
         self.news_home_url = r'http://www.nhc.gov.cn/xcs/yqtb/list_gzbd.shtml'
@@ -113,12 +114,13 @@ class Nhc_Daily_Disclosure_Scraper:
         # Save the dataframe as csv
         df_main = df_main.sort_values('date', ascending=False)
         df_main.to_csv(self.news_url_csv_path, index=False)
+        print(Prompt_type.SYS.value, f'Pages url dataframe saved to <{self.news_url_csv_path}>...')
 
     # Scraping the text content
     def scrape_news_content(self, news_url, date):
         # Update session
         self.update_session()
-        news_json = {'date': date, 'title': None, 'para': None}
+        news_json = {'date': date, 'title': None, 'paragraphs': None}
 
         # Request
         res = self.rq_session.get(news_url)
@@ -131,9 +133,11 @@ class Nhc_Daily_Disclosure_Scraper:
         text_boxes = soup.find_all('div', id='xw_box')
         para_list = text_boxes[0].find_all('p')
         para_list = [para.text for para in para_list if para.text not in ['', '\n']]
-        news_json['para'] = '\n'.join(para_list)
+        news_json['paragraphs'] = '\n'.join(para_list)
 
         return news_json
+
+
 #
 if __name__ == '__test__':
     ndds = Nhc_Daily_Disclosure_Scraper()
